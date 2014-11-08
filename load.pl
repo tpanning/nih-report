@@ -3,7 +3,11 @@
 use strict;
 use XML::Twig;
 use JSON;
+use Search::Elasticsearch;
 
+my $e = Search::Elasticsearch->new(
+    nodes => ['192.168.59.103:9200']
+);
 my $twig = XML::Twig->new(
     twig_handlers => {
         row => \&jsonify_row
@@ -22,7 +26,7 @@ sub jsonify_row {
     for my $term_elem (@term_elems) {
         push @terms, $term_elem->text;
     }
-    my $json = encode_json {
+    my $data = {
         application_id => $row->first_child('APPLICATION_ID')->text,
         activity => $row->first_child('ACTIVITY')->text,
         administering_ic => $row->first_child('ADMINISTERING_IC')->text,
@@ -41,5 +45,11 @@ sub jsonify_row {
         funding_institute => $funding_institute,
         terms => \@terms
     };
-    print $json . "\n";
+    $e->index(
+        index => 'nih',
+        type => 'small',
+        id => $data->{'application_id'},
+        body => $data
+    );
+    #print encode_json($json) . "\n";
 }
