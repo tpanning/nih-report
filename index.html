@@ -7,15 +7,21 @@
 <script src="nih-report.js"></script>
 </head>
 <body>
-<textarea rows=10 id="query">
-{"query": {"match": {
-
-}}}
-</textarea>
 <div>
-<button id="submit">Run query</button>
+Query:
+<textarea rows=10 id="searchquery">
+</textarea>
 </div>
-<div id="results">
+<div>
+Aggregations:
+<textarea rows=10 id="aggregations">
+</textarea>
+</div>
+<div>
+<button id="runquery">Run query</button>
+</div>
+<div>
+    <ul id="searchresults"></ul>
 </div>
 </body>
 </html>
