@@ -4,6 +4,29 @@ use strict;
 use XML::Twig;
 use JSON;
 use Search::Elasticsearch;
+use Time::Piece;
+
+# To get the mapping right, use this command:
+#curl -XPUT 'http://192.168.59.103:9200/nih/_mapping/small' -d '
+#{
+#  "small": {
+#    "properties": {
+#      "total_cost": {"type": "integer"},
+#      "activity": {"type": "string", "index": "not_analyzed"},
+#      "administering_ic": {"type": "string", "index": "not_analyzed"},
+#      "application_type": {"type": "string", "index": "not_analyzed"},
+#      "foa_number": {"type": "string", "index": "not_analyzed"},
+#      "funding_institute": {"type": "string", "index": "not_analyzed"},
+#      "fy": {"type": "integer"},
+#      "project_number": {"type": "string", "index": "not_analyzed"},
+#      "award_notice_date": {"type": "date"},
+#      "budget_start": {"type": "date"},
+#      "budget_end": {"type": "date"},
+#      "project_start": {"type": "date"},
+#      "project_end": {"type": "date"}
+#    }
+#  }
+#}'
 
 my $e = Search::Elasticsearch->new(
     nodes => ['192.168.59.103:9200']
@@ -32,11 +55,11 @@ sub jsonify_row {
         administering_ic => $row->first_child('ADMINISTERING_IC')->text,
         application_type => $row->first_child('APPLICATION_TYPE')->text,
         total_cost => $row->first_child('TOTAL_COST')->text,
-        award_notice_date => $row->first_child('AWARD_NOTICE_DATE')->text,
-        budget_start => $row->first_child('BUDGET_START')->text,
-        budget_end => $row->first_child('BUDGET_END')->text,
-        project_start => $row->first_child('PROJECT_START')->text,
-        project_end => $row->first_child('PROJECT_END')->text,
+        #award_notice_date => convertDate($row->first_child('AWARD_NOTICE_DATE')->text),
+        #budget_start => convertDate($row->first_child('BUDGET_START')->text),
+        #budget_end => convertDate($row->first_child('BUDGET_END')->text),
+        #project_start => convertDate($row->first_child('PROJECT_START')->text),
+        #project_end => convertDate($row->first_child('PROJECT_END')->text),
         foa_number => $row->first_child('FOA_NUMBER')->text,
         project_number => $row->first_child('FULL_PROJECT_NUM')->text,
         fy => $row->first_child('FY')->text,
@@ -45,11 +68,24 @@ sub jsonify_row {
         funding_institute => $funding_institute,
         terms => \@terms
     };
+    addDate($data, 'award_notice_date', $row->first_child('AWARD_NOTICE_DATE')->text);
+    addDate($data, 'budget_start', $row->first_child('BUDGET_START')->text);
+    addDate($data, 'budget_end', $row->first_child('BUDGET_END')->text);
+    addDate($data, 'project_start', $row->first_child('PROJECT_START')->text);
+    addDate($data, 'project_end', $row->first_child('PROJECT_END')->text);
     $e->index(
         index => 'nih',
         type => 'small',
         id => $data->{'application_id'},
         body => $data
     );
-    #print encode_json($json) . "\n";
+    #print encode_json($data) . "\n";
+    $t->purge;
+}
+
+sub addDate {
+    my ($data, $fieldname, $oldDate) = @_;
+    if ($oldDate ne "") {
+        $data->{$fieldname} = Time::Piece->strptime($oldDate, "%m/%d/%Y")->strftime("%F");
+    }
 }
