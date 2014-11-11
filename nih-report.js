@@ -21,10 +21,23 @@ $(document).ready(function() {
             console.log(resp);
             var $results = $("#searchresults");
             $results.empty();
+            // Show the matching documents
             _.forEach(resp.hits.hits, function(hit) {
                 var title = hit._source.title;
                 $results.append("<li>" + title + "</li>");
             });
+            // Show the aggregation results
+            var $aggresults = $("#aggresults");
+            $aggresults.empty();
+            if (resp.aggregations) {
+                _.forOwn(resp.aggregations, function(agg, name){
+                    $aggresults.append("<h2>"+name+"</h2><ul>");
+                    _.forEach(agg.buckets, function(bucket){
+                        $aggresults.append("<li>" + bucket.key + " - " + bucket.doc_count + "</li>");
+                    });
+                    $aggresults.append("</ul>");
+                });
+            }
         });
     });
 });
