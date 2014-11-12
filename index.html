@@ -7,6 +7,12 @@
 <script src="elasticsearch-js/elasticsearch.jquery.js"></script>
 <script src="nih-report.js"></script>
 </head>
+<style>
+.aggregation {
+    display: inline-block;
+    width: 500px;
+}
+</style>
 <body>
 <div>
 Query:
@@ -21,11 +27,13 @@ Aggregations:
 <div>
 <button id="runquery">Run query</button>
 </div>
-<div>
+<div id="aggresults" class="aggregation">
+</div>
+<div id="significant_terms" class="aggregation">
+</div>
+<canvas id="myChart" class="aggregation" height="400"></canvas>
+<div class="aggregation">
     <ul id="searchresults"></ul>
 </div>
-<div id="aggresults">
-</div>
-<canvas id="myChart" width="500" height="400"></canvas>
 </body>
 </html>

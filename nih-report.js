@@ -25,10 +25,32 @@ $(document).ready(function() {
             barData.labels.push(bucket.key);
             barData.datasets[0].data.push(bucket.doc_count);
         });
+        // Destroy the last chart. Wasteful, but easier than updating the data in place.
         if (instituteBarChart !== undefined) {
             instituteBarChart.destroy();
         }
         instituteBarChart = new Chart(ctx).Bar(barData);
+    }
+
+    function updateSignificantTerms(buckets) {
+        // Get the min and max counts for scaling purposes
+        var fromDocCount = function(bucket) { return bucket.doc_count; };
+        var minCount = _.min(buckets, fromDocCount).doc_count;
+        var maxCount = _.max(buckets, fromDocCount).doc_count;
+        var $significantTerms = $("#significant_terms");
+        $significantTerms.empty();
+        _.forEach(buckets, function(bucket) {
+            var $term = $("<span></span>");
+            $term.append(bucket.key);
+            var scaling = (bucket.doc_count - minCount) / (maxCount - minCount);
+            var fontSize = (scaling * 20 + 12) + "pt";
+            $term.css({
+                "font-size": fontSize,
+                "padding": "5px"
+            });
+            $significantTerms.append($term);
+            $significantTerms.append(" ");
+        });
     }
 
     $("#runquery").on("click", function() {
@@ -54,6 +76,13 @@ $(document).ready(function() {
             }
           }
         };
+        // Add the significant terms aggregation
+        searchBody.aggs.significant_terms = {
+            "significant_terms": {
+                "field": "terms",
+                "size": 25
+            }
+        };
 
         // Do the Dew!
         client.search({index:'nih', type:'small', body: searchBody}).then(function(resp) {
@@ -72,6 +101,8 @@ $(document).ready(function() {
                 _.forOwn(resp.aggregations, function(agg, name){
                     if (name === "institutes") {
                         updateInstitute(agg.buckets);
+                    } else if (name === "significant_terms") {
+                        updateSignificantTerms(agg.buckets);
                     } else {
                         $aggresults.append("<h2>"+name+"</h2><ul>");
                         _.forEach(agg.buckets, function(bucket){
