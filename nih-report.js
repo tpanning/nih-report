@@ -1,6 +1,6 @@
 "use strict";
 
-var client = new $.es.Client({host: 'http://192.168.59.103:9200'});
+var client = new $.es.Client({host: 'http://localhost:9200'});
 $(document).ready(function() {
     $("#runsearch").on("click", function() {
         client.search({index:'nih', type:'small', body: searchJSON}).then(function(resp) {
