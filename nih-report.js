@@ -40,7 +40,22 @@ $(document).ready(function() {
         var aggregationText = $("#aggregations").val();
         if (aggregationText) {
             searchBody.aggs = JSON.parse(aggregationText);
+        } else {
+            searchBody.aggs = {};
         }
+        // Add the per-institute aggregation
+        searchBody.aggs.institutes = {
+          "terms": {
+            "field": "funding_institute",
+            "size": 15
+          }, "aggregations": {
+            "cost_stats": {
+              "stats": {"field":"total_cost"}
+            }
+          }
+        };
+
+        // Do the Dew!
         client.search({index:'nih', type:'small', body: searchBody}).then(function(resp) {
             console.log(resp);
             var $results = $("#searchresults");
