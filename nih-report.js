@@ -2,16 +2,12 @@
 
 var client = new $.es.Client({host: 'http://localhost:9200'});
 $(document).ready(function() {
-    $("#runsearch").on("click", function() {
-        client.search({index:'nih', type:'small', body: searchJSON}).then(function(resp) {
-        });
-    });
 
     $("#runquery").on("click", function() {
         var searchBody = {};
         var searchText = $("#searchquery").val();
         if (searchText) {
-            searchBody.query = JSON.parse(searchText);
+            searchBody.query = { "match": JSON.parse(searchText) };
         }
         var aggregationText = $("#aggregations").val();
         if (aggregationText) {
