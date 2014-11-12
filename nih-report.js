@@ -1,7 +1,35 @@
 "use strict";
 
-var client = new $.es.Client({host: 'http://localhost:9200'});
+
 $(document).ready(function() {
+    var client = new $.es.Client({host: 'http://localhost:9200'});
+    var ctx = $("#myChart").get(0).getContext("2d");
+    Chart.defaults.global.animation = false;
+    var instituteBarChart = undefined;
+
+    function updateInstitute(buckets) {
+        var barData = {
+            labels: [],
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,0.8)",
+                    highlightFill: "rgba(220,220,220,0.75)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: []
+                }
+            ]
+        };
+        _.forEach(buckets, function(bucket) {
+            barData.labels.push(bucket.key);
+            barData.datasets[0].data.push(bucket.doc_count);
+        });
+        if (instituteBarChart !== undefined) {
+            instituteBarChart.destroy();
+        }
+        instituteBarChart = new Chart(ctx).Bar(barData);
+    }
 
     $("#runquery").on("click", function() {
         var searchBody = {};
@@ -27,11 +55,15 @@ $(document).ready(function() {
             $aggresults.empty();
             if (resp.aggregations) {
                 _.forOwn(resp.aggregations, function(agg, name){
-                    $aggresults.append("<h2>"+name+"</h2><ul>");
-                    _.forEach(agg.buckets, function(bucket){
-                        $aggresults.append("<li>" + bucket.key + " - " + bucket.doc_count + "</li>");
-                    });
-                    $aggresults.append("</ul>");
+                    if (name === "institutes") {
+                        updateInstitute(agg.buckets);
+                    } else {
+                        $aggresults.append("<h2>"+name+"</h2><ul>");
+                        _.forEach(agg.buckets, function(bucket){
+                            $aggresults.append("<li>" + bucket.key + " - " + bucket.doc_count + "</li>");
+                        });
+                        $aggresults.append("</ul>");
+                    }
                 });
             }
         });
