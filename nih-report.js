@@ -3,9 +3,11 @@
 
 $(document).ready(function() {
     var client = new $.es.Client({host: 'http://localhost:9200'});
-    var ctx = $("#myChart").get(0).getContext("2d");
     Chart.defaults.global.animation = false;
+    var instituteChartCtx = $("#instituteChart").get(0).getContext("2d");
     var instituteBarChart = undefined;
+    var timelineCtx = $("#timelineChart").get(0).getContext("2d");
+    var timelineChart = undefined;
 
     function updateInstitute(buckets) {
         var barData = {
@@ -29,7 +31,39 @@ $(document).ready(function() {
         if (instituteBarChart !== undefined) {
             instituteBarChart.destroy();
         }
-        instituteBarChart = new Chart(ctx).Bar(barData);
+        instituteBarChart = new Chart(instituteChartCtx).Bar(barData);
+    }
+
+    function updateTimeline(buckets) {
+        var timelineData = {
+            labels: [],
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.2)",
+                    strokeColor: "rgba(220,220,220,1)",
+                    pointColor: "rgba(220,220,220,1)",
+                    pointStrokeColor: "#fff",
+                    pointHighlightFill: "#fff",
+                    pointHighlightStroke: "rgba(220,220,220,1)",
+                    data: [65, 59, 80, 81, 56, 55, 40]
+                }
+            ]
+        };
+        _.forEach(buckets, function(bucket) {
+            // Iterating over the buckets and using them as the data points runs into problems if
+            // there are months that have no matching records. Elasticsearch will not return a
+            // bucket for those months, so we'll inadvertently skip them. So if there is no data for
+            // Feb 2014, then the graph will go from Jan 2014 to Mar 2014 and connect the dots as if
+            // that makes sense, instead of putting a 0 between them at Feb.
+            var date = moment(bucket.key_as_string);
+            timelineData.labels.push(date.format("MMM YY"));
+            timelineData.datasets[0].data.push(bucket.doc_count);
+        });
+        if (timelineChart !== undefined) {
+            timelineChart.destroy();
+        }
+        timelineChart = new Chart(timelineCtx).Line(timelineData);
     }
 
     function updateSignificantTerms(buckets) {
@@ -83,6 +117,19 @@ $(document).ready(function() {
                 "size": 25
             }
         };
+        // Add the monthly aggregation
+        searchBody.aggs.monthly = {
+            "date_histogram": {
+                "field": "award_notice_date",
+                "interval": "month"
+            }, "aggregations": {
+                "cost_stats": {
+                    "stats": {
+                        "field": "total_cost"
+                    }
+                }
+            }
+        };
 
         // Do the Dew!
         client.search({index:'nih', type:'small', body: searchBody}).then(function(resp) {
@@ -103,6 +150,8 @@ $(document).ready(function() {
                         updateInstitute(agg.buckets);
                     } else if (name === "significant_terms") {
                         updateSignificantTerms(agg.buckets);
+                    } else if (name === "monthly") {
+                        updateTimeline(agg.buckets);
                     } else {
                         $aggresults.append("<h2>"+name+"</h2><ul>");
                         _.forEach(agg.buckets, function(bucket){
