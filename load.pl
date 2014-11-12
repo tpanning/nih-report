@@ -5,12 +5,13 @@ use XML::Twig;
 use JSON;
 use Search::Elasticsearch;
 use Time::Piece;
+use Try::Tiny;
 
 # To get the mapping right, use these commands:
-#curl -XPUT 'http://192.168.59.103:9200/nih/'
-#curl -XPUT 'http://192.168.59.103:9200/nih/_mapping/small' -d '
+#curl -XPUT 'http://localhost:9200/nih/'
+#curl -XPUT 'http://localhost:9200/nih/_mapping/full' -d '
 #{
-#  "small": {
+#  "full": {
 #    "properties": {
 #      "total_cost": {"type": "integer"},
 #      "activity": {"type": "string", "index": "not_analyzed"},
@@ -39,21 +40,28 @@ my $twig = XML::Twig->new(
     }
 );
 #$twig->parsefile('data/RePORTER_PRJ_X_FY2014_170.xml');
-$twig->parsefile('data/RePORTER_PRJ_X_FY2013.xml');
+my @files = glob("data/RePORTER_PRJ_X_FY*.xml");
+for my $file (@files) {
+    $twig->parsefile($file);
+}
 #my $root = $twig->root;
 #my @rows = $root->children('row');
 #foreach my $row (@rows) {
 sub jsonify_row {
     my ($t, $row) = @_;
+    my $application_id = $row->first_child('APPLICATION_ID')->text;
     my $funding_institute = $row->first_child('FUNDING_ICs ')->text;
     ($funding_institute) = $funding_institute =~ m/(^[^:]+)/;
-    my @term_elems = $row->first_child('PROJECT_TERMSX')->children('TERM');
+    my $term_elem = $row->first_child('PROJECT_TERMSX');
     my @terms = ();
-    for my $term_elem (@term_elems) {
-        push @terms, $term_elem->text;
+    if (defined $term_elem) {
+        my @term_elems = $term_elem->children('TERM');
+        for my $term_elem (@term_elems) {
+            push @terms, $term_elem->text;
+        }
     }
     my $data = {
-        application_id => $row->first_child('APPLICATION_ID')->text,
+        application_id => $application_id,
         activity => $row->first_child('ACTIVITY')->text,
         administering_ic => $row->first_child('ADMINISTERING_IC')->text,
         application_type => $row->first_child('APPLICATION_TYPE')->text,
@@ -71,19 +79,26 @@ sub jsonify_row {
     addDate($data, 'budget_end', $row->first_child('BUDGET_END')->text);
     addDate($data, 'project_start', $row->first_child('PROJECT_START')->text);
     addDate($data, 'project_end', $row->first_child('PROJECT_END')->text);
-    $e->index(
-        index => 'nih',
-        type => 'small',
-        id => $data->{'application_id'},
-        body => $data
-    );
+    try {
+        $e->index(
+            index => 'nih',
+            type => 'full',
+            id => $application_id,
+            body => $data
+        );
+    } catch {
+        warn "caught error: $_";
+    };
     #print encode_json($data) . "\n";
     $t->purge;
 }
 
 sub addDate {
     my ($data, $fieldname, $oldDate) = @_;
-    if ($oldDate ne "") {
-        $data->{$fieldname} = Time::Piece->strptime($oldDate, "%m/%d/%Y")->strftime("%F");
+    try {
+        if ($oldDate ne "") {
+            $data->{$fieldname} = Time::Piece->strptime($oldDate, "%m/%d/%Y")->strftime("%F");
+        }
+    } catch {
     }
 }

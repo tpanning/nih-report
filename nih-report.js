@@ -132,7 +132,7 @@ $(document).ready(function() {
         };
 
         // Do the Dew!
-        client.search({index:'nih', type:'small', body: searchBody}).then(function(resp) {
+        client.search({index:'nih', type:'full', body: searchBody}).then(function(resp) {
             console.log(resp);
             var $results = $("#searchresults");
             $results.empty();
