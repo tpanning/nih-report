@@ -131,12 +131,20 @@ $(document).ready(function() {
             }
         };
 
+        function numberWithCommas(x) {
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         // Do the Dew!
         client.search({index:'nih', type:'full', body: searchBody}).then(function(resp) {
             console.log(resp);
+            // Show the total number of matches
+            var $resultcount = $("#resultcount");
+            $resultcount.empty();
+            $resultcount.append(numberWithCommas(resp.hits.total) + " results");
+            // Show the matching documents
             var $results = $("#searchresults");
             $results.empty();
-            // Show the matching documents
             _.forEach(resp.hits.hits, function(hit) {
                 var title = hit._source.title;
                 $results.append("<li>" + title + "</li>");

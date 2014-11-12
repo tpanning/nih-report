@@ -18,11 +18,6 @@
 .prompt {
     display: block;
 }
-#runquery {
-    display: block;
-    margin-left: auto;
-    margin-right: 0px;
-}
 
 .aggregation {
     display: inline-block;
@@ -39,7 +34,10 @@
         <span class="prompt">Aggregations:</span>
         <textarea rows=10 id="aggregations"></textarea>
     </div>
-    <button id="runquery">Run query</button>
+    <div class="launch">
+        <button id="runquery">Run query</button>
+        <span id="resultcount"></span>
+    </div>
 </div>
 <div class="visualizations">
     <canvas id="timelineChart" class="aggregation" width="800" height="400"></canvas>
