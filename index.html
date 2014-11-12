@@ -18,11 +18,20 @@
 .prompt {
     display: block;
 }
+#resultcount {
+    color: #0F3E88;
+}
 
 .aggregation {
     display: inline-block;
     width: 500px;
+    margin: 10px;
 }
+
+#significant_terms {
+    color: #0F3E88;
+}
+
 </style>
 <body>
 <div class="inputs">
@@ -43,7 +52,7 @@
     <canvas id="timelineChart" class="aggregation" width="800" height="400"></canvas>
     <div id="significant_terms" class="aggregation">
     </div>
-    <canvas id="instituteChart" class="aggregation" height="400"></canvas>
+    <canvas id="instituteChart" class="aggregation" width="500" height="400"></canvas>
     <div class="aggregation">
         <ul id="searchresults"></ul>
     </div>

@@ -15,10 +15,10 @@ $(document).ready(function() {
             datasets: [
                 {
                     label: "My First dataset",
-                    fillColor: "rgba(220,220,220,0.5)",
-                    strokeColor: "rgba(220,220,220,0.8)",
-                    highlightFill: "rgba(220,220,220,0.75)",
-                    highlightStroke: "rgba(220,220,220,1)",
+                    fillColor: "rgba(15,62,136,0.5)",
+                    strokeColor: "rgba(15,62,136,0.8)",
+                    highlightFill: "rgba(15,62,136,0.75)",
+                    highlightStroke: "rgba(15,62,136,1)",
                     data: []
                 }
             ]
@@ -40,9 +40,9 @@ $(document).ready(function() {
             datasets: [
                 {
                     label: "My First dataset",
-                    fillColor: "rgba(220,220,220,0.2)",
-                    strokeColor: "rgba(220,220,220,1)",
-                    pointColor: "rgba(220,220,220,1)",
+                    fillColor: "rgba(15,62,136,0.2)",
+                    strokeColor: "rgba(15,62,136,1)",
+                    pointColor: "rgba(15,62,136,1)",
                     pointStrokeColor: "#fff",
                     pointHighlightFill: "#fff",
                     pointHighlightStroke: "rgba(220,220,220,1)",
