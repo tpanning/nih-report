@@ -9,33 +9,48 @@
 <script src="nih-report.js"></script>
 </head>
 <style>
+.inputs {
+    display: inline-block;
+}
+.entry {
+    display: inline-block;
+}
+.prompt {
+    display: block;
+}
+#runquery {
+    display: block;
+    margin-left: auto;
+    margin-right: 0px;
+}
+
 .aggregation {
     display: inline-block;
     width: 500px;
 }
 </style>
 <body>
-<div>
-Query:
-<textarea rows=10 id="searchquery">
-</textarea>
+<div class="inputs">
+    <div class="entry">
+        <span class="prompt">Query:</span>
+        <textarea rows=10 id="searchquery"></textarea>
+    </div>
+    <div class="entry">
+        <span class="prompt">Aggregations:</span>
+        <textarea rows=10 id="aggregations"></textarea>
+    </div>
+    <button id="runquery">Run query</button>
 </div>
-<div>
-Aggregations:
-<textarea rows=10 id="aggregations">
-</textarea>
-</div>
-<div>
-<button id="runquery">Run query</button>
-</div>
-<div id="aggresults" class="aggregation">
-</div>
-<div id="significant_terms" class="aggregation">
-</div>
-<canvas id="instituteChart" class="aggregation" height="400"></canvas>
-<canvas id="timelineChart" class="aggregation" height="400"></canvas>
-<div class="aggregation">
-    <ul id="searchresults"></ul>
+<div class="visualizations">
+    <canvas id="timelineChart" class="aggregation" width="800" height="400"></canvas>
+    <div id="significant_terms" class="aggregation">
+    </div>
+    <canvas id="instituteChart" class="aggregation" height="400"></canvas>
+    <div class="aggregation">
+        <ul id="searchresults"></ul>
+    </div>
+    <div id="aggresults" class="aggregation">
+    </div>
 </div>
 </body>
 </html>
